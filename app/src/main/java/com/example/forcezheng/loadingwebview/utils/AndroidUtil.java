@@ -10,7 +10,7 @@ import android.os.Build;
 public class AndroidUtil {
 
     /**
-     * sdk版本号
+     * 手机sdk版本号
      *
      * @return
      */

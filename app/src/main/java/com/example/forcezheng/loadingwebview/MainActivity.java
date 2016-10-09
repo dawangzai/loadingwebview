@@ -8,11 +8,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
-import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import com.example.forcezheng.loadingwebview.utils.AndroidUtil;
 import com.example.forcezheng.loadingwebview.view.LoadingWebView;
 
 public class MainActivity extends Activity {
@@ -39,15 +39,14 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         wb.loadUrl("file:///android_asset/webview.html");
-        wb.addJavascriptInterface(new JsInteration(), "control");
+        if (AndroidUtil.getAndroidSDKVersion() >= 17) {
+            wb.addJavascriptInterface(new JsInteration(), "control");
+        } else {
+            wb.addJavascriptInterface(new JsInterationLessThan17(), "control");
+        }
     }
 
     private class WebViewClient extends android.webkit.WebViewClient {
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            return super.shouldOverrideUrlLoading(view, request);
-        }
-
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
@@ -56,17 +55,33 @@ public class MainActivity extends Activity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-//            Android2JsNoParmNoResult(wb);
-//            Android2JsHaveParmNoResult(wb);
-//            wb.loadUrl("javascript:toBaiDu");
-            Android2JsHaveParmHaveResult2(wb);
+            if (AndroidUtil.getAndroidSDKVersion() < 19) {
+                Android2JsHaveParmHaveResult(wb);
+            } else {
+                Android2JsHaveParmHaveResult2(wb);
+            }
         }
     }
 
     /**
-     * js调用android的方法
+     * js调用android的方法API小于17
      */
-    class JsInteration {
+    public class JsInterationLessThan17 {
+        @JavascriptInterface
+        public void toastMessage(String message) {
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+        }
+
+        @JavascriptInterface
+        public void onSumResult(int result) {
+            Toast.makeText(getApplicationContext(), "我是android调用js方法(4.4前)，入参是1和2，js返回结果是" + result, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * js调用android的方法API大于17
+     */
+    public class JsInteration {
         @JavascriptInterface
         public void toastMessage(String message) {
             Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
